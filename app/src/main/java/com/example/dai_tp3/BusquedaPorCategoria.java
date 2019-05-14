@@ -4,15 +4,23 @@ import android.app.Activity;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.JsonReader;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.net.HttpURLConnection;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class BusquedaPorCategoria extends Activity {
 
-    public ListView listaCatgorias;
+    public ListView MiListaCatgorias;
     public ArrayAdapter arrayAdapter;
     public ArrayList<String> ListaCategorias;
     @Override
@@ -20,7 +28,7 @@ public class BusquedaPorCategoria extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_busqueda_por_categoria);
         ListaCategorias=new ArrayList<>();
-        listaCatgorias=findViewById(R.id.ListaBuscarPorCategorias);
+        MiListaCatgorias=findViewById(R.id.ListaBuscarPorCategorias);
         arrayAdapter=new ArrayAdapter(this,android.R.layout.simple_list_item_1,ListaCategorias);
         tareaAsincronica miTarea=new tareaAsincronica();
         miTarea.execute();
@@ -28,13 +36,74 @@ public class BusquedaPorCategoria extends Activity {
     private class tareaAsincronica extends AsyncTask<Void, Void, Void>{
         @Override
         protected Void doInBackground(Void... voids) {
-            Uri miRuta=new URL("http://epok.buenosaires.gob.ar/getCategorias");
+
+            try {
+                URL miRuta= new URL("http://epok.buenosaires.gob.ar/getCategorias");
+                HttpURLConnection MiConexion=(HttpURLConnection) miRuta.openConnection();
+
+                if(MiConexion.getResponseCode()==200)
+                {
+                    Log.d("Conexion", "Exitosa");
+                    InputStream cuerpoRespuesta=MiConexion.getInputStream();
+                    InputStreamReader lectorRespuesta= new InputStreamReader(cuerpoRespuesta, "UTf-8");
+                    procesarJSONLeido(lectorRespuesta);
+                }
+                else
+                {
+                    Log.d("Conexion", "Error en la conexion");
+                }
+                MiConexion.disconnect();
+
+            } catch (Exception e) {
+                Log.d("TryCatch1", "Error en el primer try catch   " +e.getMessage());
+            }
             return null;
         }
         @Override
-        protected void OnPostExecute(Void avoids)
+        protected void onPostExecute(Void aVoid)
         {
-            super.onPostExecute(avoids);
+            super.onPostExecute(aVoid);
+
+            MiListaCatgorias.setAdapter(arrayAdapter);
+        }
+    }
+    public void procesarJSONLeido(InputStreamReader streamLeido)
+    {
+        JsonReader JSONLeido=new JsonReader(streamLeido);
+        try {
+            JSONLeido.beginObject();
+            while(JSONLeido.hasNext()){
+                String NombreElemtoActual=JSONLeido.nextName();
+
+                if(NombreElemtoActual.equals("cantidad_de_categorias"))
+                {
+                    int cantidadCategorias=JSONLeido.nextInt();
+                }
+                else
+                {
+                    JSONLeido.beginArray();
+                    while(JSONLeido.hasNext()){
+                        JSONLeido.beginObject();
+                        while(JSONLeido.hasNext()){
+                            NombreElemtoActual=JSONLeido.nextName();
+                            if(NombreElemtoActual.equals("nombre")){
+                                String valorElementoActual=JSONLeido.nextString();
+                                ListaCategorias.add(valorElementoActual);
+                            }
+                            else{
+                                JSONLeido.skipValue();
+                            }
+                        }
+                        JSONLeido.endObject();
+                    }
+                    JSONLeido.endArray();
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+
         }
     }
 }
