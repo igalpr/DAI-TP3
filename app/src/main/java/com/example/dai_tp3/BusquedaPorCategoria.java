@@ -1,11 +1,14 @@
 package com.example.dai_tp3;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.JsonReader;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -32,6 +35,25 @@ public class BusquedaPorCategoria extends Activity {
         arrayAdapter=new ArrayAdapter(this,android.R.layout.simple_list_item_1,ListaCategorias);
         tareaAsincronica miTarea=new tareaAsincronica();
         miTarea.execute();
+        MiListaCatgorias.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String Cat=ListaCategorias.get(position);
+                IrAPantalla(Cat);
+
+            }
+        });
+        {
+
+        }
+    }
+    private void IrAPantalla(String categoria)
+    {
+        Intent llamar=new Intent(this,MostrarPorCategoria.class);
+        Bundle paqueteDeDatos=new Bundle();
+        paqueteDeDatos.putString("CategoriaElegida",categoria);
+        llamar.putExtras(paqueteDeDatos);
+        startActivity(llamar);
     }
     private class tareaAsincronica extends AsyncTask<Void, Void, Void>{
         @Override
@@ -106,4 +128,5 @@ public class BusquedaPorCategoria extends Activity {
 
         }
     }
+
 }
