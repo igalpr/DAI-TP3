@@ -25,9 +25,10 @@ public class MostrarPorCategoria extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mostrar_por_categoria);
         Bundle DatosRecibidos=this.getIntent().getExtras();
-        DatoRecibido=DatosRecibidos.getString("CategoriaElegida");
+        DatoRecibido=DatosRecibidos.getString("InformacionElegida");
+        Log.d("mostrarDato",""+DatoRecibido);
         ListaACargar=new ArrayList<>();
-        listView=findViewById(R.id.ListaResultadoMostrar);
+        listView=findViewById(R.id.ListaMostrarEnResultados);
         arrayAdapter=new ArrayAdapter(this,android.R.layout.simple_list_item_1,ListaACargar);
         tareaAsincronica miTarea=new tareaAsincronica();
         miTarea.execute();
@@ -62,27 +63,34 @@ public class MostrarPorCategoria extends AppCompatActivity {
         protected void onPostExecute(Void aVoid)
         {
             super.onPostExecute(aVoid);
-
+            Log.d("procesar","termino");
+            arrayAdapter.notifyDataSetChanged();
             listView.setAdapter(arrayAdapter);
+            Log.d("mostrar",""+ListaACargar.size());
         }
     }
     public void procesarJSONLeido(InputStreamReader streamLeido)
     {
+        Log.d("procesar","llego");
         JsonReader JSONLeido=new JsonReader(streamLeido);
+
         try {
             JSONLeido.beginObject();
             while(JSONLeido.hasNext()){
                 String NombreElemtoActual=JSONLeido.nextName();
 
-                if(NombreElemtoActual.equals("clasesEncontradas"))
+                if(NombreElemtoActual.equals("instancias"))
                 {
+                    Log.d("mostrar","entro");
                     JSONLeido.beginArray();
                     while(JSONLeido.hasNext()){
                         JSONLeido.beginObject();
                         while(JSONLeido.hasNext()){
                             NombreElemtoActual=JSONLeido.nextName();
                             if(NombreElemtoActual.equals("nombre")){
+
                                 String valorElementoActual=JSONLeido.nextString();
+                                Log.d("mostrar",valorElementoActual);
                                 ListaACargar.add(valorElementoActual);
                             }
                             else{
@@ -93,12 +101,16 @@ public class MostrarPorCategoria extends AppCompatActivity {
                     }
                     JSONLeido.endArray();
                 }
+                else{
+                    JSONLeido.skipValue();
+                }
+
             }
 
         }
         catch (Exception e)
         {
-
+            Log.d("mostrar",""+e.getLocalizedMessage());
         }
     }
 }

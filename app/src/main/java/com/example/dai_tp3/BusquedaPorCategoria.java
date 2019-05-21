@@ -51,7 +51,8 @@ public class BusquedaPorCategoria extends Activity {
     {
         Intent llamar=new Intent(this,MostrarPorCategoria.class);
         Bundle paqueteDeDatos=new Bundle();
-        paqueteDeDatos.putString("CategoriaElegida",categoria);
+        Log.d("valor",categoria);
+        paqueteDeDatos.putString("InformacionElegida",categoria);
         llamar.putExtras(paqueteDeDatos);
         startActivity(llamar);
     }
