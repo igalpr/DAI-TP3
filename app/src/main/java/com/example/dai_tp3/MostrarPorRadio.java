@@ -1,64 +1,49 @@
 package com.example.dai_tp3;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.JsonReader;
 import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.net.HttpURLConnection;
 
-import javax.net.ssl.HttpsURLConnection;
+public class MostrarPorRadio extends Activity {
 
-public class BusquedaPorCategoria extends Activity {
-
-    public ListView MiListaCatgorias;
+    public ListView listView;
     public ArrayAdapter arrayAdapter;
-    public ArrayList<String> ListaCategorias;
+    public ArrayList<String> ListaACargar;
+    String PosicionX;
+    String PosicionY;
+    String Categoria;
+    int Radio;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_busqueda_por_categoria);
-        ListaCategorias=new ArrayList<>();
-        MiListaCatgorias=findViewById(R.id.ListaBuscarPorCategorias);
-        arrayAdapter=new ArrayAdapter(this,android.R.layout.simple_list_item_1,ListaCategorias);
+        setContentView(R.layout.activity_mostrar_por_radio);
+        Bundle DatosRecibidos=this.getIntent().getExtras();
+        PosicionX=DatosRecibidos.getString("positionX");
+        PosicionY=DatosRecibidos.getString("posicionY");
+        Categoria=DatosRecibidos.getString("categoria");
+        Radio=DatosRecibidos.getInt("radio");
+        ListaACargar=new ArrayList<>();
+        listView=findViewById(R.id.ListaMostrarPorRadio);
+        arrayAdapter=new ArrayAdapter(this,android.R.layout.simple_list_item_1,ListaACargar);
         tareaAsincronica miTarea=new tareaAsincronica();
         miTarea.execute();
-        MiListaCatgorias.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String Cat=ListaCategorias.get(position);
-                IrAPantalla(Cat);
-
-            }
-        });
     }
-    private void IrAPantalla(String categoria)
-    {
-        Intent llamar=new Intent(this,MostrarPorCategoria.class);
-        Bundle paqueteDeDatos=new Bundle();
-        Log.d("valor",categoria);
-        paqueteDeDatos.putString("InformacionElegida",categoria);
-        llamar.putExtras(paqueteDeDatos);
-        startActivity(llamar);
-    }
-    private class tareaAsincronica extends AsyncTask<Void, Void, Void>{
+    private class tareaAsincronica extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
 
             try {
-                URL miRuta= new URL("http://epok.buenosaires.gob.ar/getCategorias");
+                URL miRuta= new URL("http://epok.buenosaires.gob.ar/reverseGeocoderLugares/?x="+PosicionX+"&y="+PosicionY+"&categorias="+Categoria+"&radio="+Radio);
                 HttpURLConnection MiConexion=(HttpURLConnection) miRuta.openConnection();
 
                 if(MiConexion.getResponseCode()==200)
@@ -83,32 +68,41 @@ public class BusquedaPorCategoria extends Activity {
         protected void onPostExecute(Void aVoid)
         {
             super.onPostExecute(aVoid);
-
-            MiListaCatgorias.setAdapter(arrayAdapter);
+            Log.d("procesar","termino");
+            if(ListaACargar.size()==0)
+            {
+                ListaACargar.add("Su búsqueda no arrojó resultados");
+            }
+            arrayAdapter.notifyDataSetChanged();
+            listView.setAdapter(arrayAdapter);
+            Log.d("mostrar",""+ListaACargar.size());
         }
     }
     public void procesarJSONLeido(InputStreamReader streamLeido)
     {
+        Log.d("procesar","llego");
         JsonReader JSONLeido=new JsonReader(streamLeido);
+
         try {
             JSONLeido.beginObject();
+            Log.d("mostrar","el momento de la verdad");
             while(JSONLeido.hasNext()){
+                Log.d("mostrar","entro al while");
                 String NombreElemtoActual=JSONLeido.nextName();
-
-                if(NombreElemtoActual.equals("cantidad_de_categorias"))
+                Log.d("mostrar",NombreElemtoActual);
+                if(NombreElemtoActual.equals("instancias"))
                 {
-                    int cantidadCategorias=JSONLeido.nextInt();
-                }
-                else
-                {
+                    Log.d("mostrar","entro");
                     JSONLeido.beginArray();
                     while(JSONLeido.hasNext()){
                         JSONLeido.beginObject();
                         while(JSONLeido.hasNext()){
                             NombreElemtoActual=JSONLeido.nextName();
                             if(NombreElemtoActual.equals("nombre")){
+
                                 String valorElementoActual=JSONLeido.nextString();
-                                ListaCategorias.add(valorElementoActual);
+                                Log.d("mostrar",valorElementoActual);
+                                ListaACargar.add(valorElementoActual);
                             }
                             else{
                                 JSONLeido.skipValue();
@@ -118,13 +112,17 @@ public class BusquedaPorCategoria extends Activity {
                     }
                     JSONLeido.endArray();
                 }
+                else{
+                    JSONLeido.skipValue();
+                }
+
             }
 
         }
         catch (Exception e)
         {
-
+            Log.d("error",""+e.getLocalizedMessage());
         }
     }
-
 }
+

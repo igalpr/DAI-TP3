@@ -64,6 +64,10 @@ public class MostrarPorCategoria extends AppCompatActivity {
         {
             super.onPostExecute(aVoid);
             Log.d("procesar","termino");
+            if(ListaACargar.size()==0)
+            {
+                ListaACargar.add("Su búsqueda no arrojó resultados");
+            }
             arrayAdapter.notifyDataSetChanged();
             listView.setAdapter(arrayAdapter);
             Log.d("mostrar",""+ListaACargar.size());

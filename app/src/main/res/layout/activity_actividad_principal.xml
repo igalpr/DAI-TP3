@@ -7,21 +7,21 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:text="Buscar por categoria"
-    android:textSize="30dp"
+    android:textSize="30sp"
     android:onClick="ProximaVista"
     android:id="@+id/BotonCategoria"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Buscar por nombre"
-        android:textSize="30dp"
+        android:textSize="30sp"
         android:onClick="ProximaVista"
         android:id="@+id/BotonNombre"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Buscar por radio"
-        android:textSize="30dp"
+        android:textSize="30sp"
         android:onClick="ProximaVista"
         android:id="@+id/BotonRadio"/>
 </LinearLayout>
